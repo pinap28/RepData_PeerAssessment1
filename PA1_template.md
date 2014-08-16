@@ -17,39 +17,60 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 ## Loading and preprocessing the data
 
 We read the decompressed .csv dataset file from the working directory.
-```{r loadData}
+
+```r
 data <- read.csv("activity.csv")
 ```
 
 We convert the date field from a factor class to date class.
-```{r convertData}
+
+```r
 data$date <- as.Date(data$date, format = "%Y-%m-%d")
 ```
 
 ## What is mean total number of steps taken per day?
 
 **Histogram** of the total number of steps taken each day.
-```{r histStepsDay}
+
+```r
 totalStepDay <- tapply(data$steps, data$date, sum)
 hist(totalStepDay, xlab = "Total Steps per Day", main = "Histogram of Total Steps per Day")
 ```
 
+![plot of chunk histStepsDay](figure/histStepsDay.png) 
+
 **Mean** and **median** total number of steps taken per day.
-```{r meanMedianTotal}
+
+```r
 mean(totalStepDay, na.rm = TRUE)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(totalStepDay, na.rm = TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
 Time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
-```{r timeSeriesPlot}
+
+```r
 meanStepInterval <- tapply(data$steps, data$interval, mean, na.rm = TRUE)
 plot(meanStepInterval, type = "l", main = "Time series plot", xlab = "number 5-minute interval", ylab = "Average number of steps")
 ```
 
+![plot of chunk timeSeriesPlot](figure/timeSeriesPlot.png) 
+
 Interval with **maximum average number of steps**.
-```{r maxAvgNumSteps}
+
+```r
 max <- which (meanStepInterval==max(meanStepInterval))
 h <- (max * 5) %/% 60
 m <- (max * 5) %% 60 -5
@@ -57,26 +78,42 @@ dayTime <- paste(as.character(h), as.character(m), sep = ":")
 ```
 
 **Interval number.**
-```{r}
+
+```r
 max[[1]]
 ```
 
+```
+## [1] 104
+```
+
 **Day time.**
-```{r}
+
+```r
 dayTime
+```
+
+```
+## [1] "8:35"
 ```
 
 ## Imputing missing values
 
 Total **number of missing values** in the dataset.
-```{r numberMissingValues}
+
+```r
 sum(is.na(data$steps))
+```
+
+```
+## [1] 2304
 ```
 
 We are going to use the **mean of the 5-minute interval** over the two months to fill the missing values. 
 
 **New dataset** with the missing data filled in.
-```{r newData}
+
+```r
 index <- is.na(data$steps)
 intervalTime <- as.integer(names(meanStepInterval))
 meanTime <- cbind(meanStepInterval, intervalTime)
@@ -89,15 +126,30 @@ We identify the `NA` values and the interval times. We construct a new array wit
 We store the dataset in **newData**.
 
 **Histogram** of the total number of steps taken each day.
-```{r newHistStepsDay}
+
+```r
 newTotalStepDay <- tapply(newData$steps, newData$date, sum)
 hist(newTotalStepDay, xlab = "Total Steps per Day", main = "New Histogram of Total Steps per Day")
 ```
 
+![plot of chunk newHistStepsDay](figure/newHistStepsDay.png) 
+
 New **Mean** and **median** total number of steps taken per day.
-```{r newMeanMedianTotal}
+
+```r
 mean(newTotalStepDay)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(newTotalStepDay)
+```
+
+```
+## [1] 10766
 ```
 
 The new **mean** is the same than before filling in the `NA` values.
@@ -111,14 +163,25 @@ Imputing missing data on the estimates of the total daily number of steps **incr
 ## Are there differences in activity patterns between weekdays and weekends?
 
 New **factor variable** in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
-```{r factorVariable}
+
+```r
 Sys.setlocale("LC_TIME", "C")
+```
+
+```
+## [1] "C"
+```
+
+```r
 newData$weekday <- as.factor(ifelse(weekdays(newData$date) %in% c("Saturday","Sunday"), "weekend", "weekday")) 
 ```
 
 **Plot containing a time series plot** of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
-```{r weekdaysPlot}
+
+```r
 library(lattice)
 dataMean <- aggregate(steps ~ weekday + interval, data = newData, FUN = mean)
 xyplot(steps ~ interval | weekday, data = dataMean, type = "l", xlab = "Interval", ylab = "Number of steps", layout = c(1,2)) 
 ```
+
+![plot of chunk weekdaysPlot](figure/weekdaysPlot.png) 
